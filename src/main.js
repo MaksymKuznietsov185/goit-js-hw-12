@@ -59,22 +59,30 @@ loadMoreButton.addEventListener('click', async () => {
   }
 });
 
-async function fetchImages() {
-  const data = await getImagesByQuery(currentQuery, currentPage);
-  const hits = data.hits;
-  totalHits = data.totalHits;
+async function fetchImages(isLoadMore = false) {
+  try {
+    const data = await getImagesByQuery(currentQuery, currentPage, PER_PAGE);
+    const hits = data.hits;
+    totalHits = data.totalHits;
 
-  if (!hits.length && currentPage === 1) {
-    iziToast.error({ message: 'No images found. Try another query.', position: 'topRight' });
-    return;
-  }
+    if (!hits.length && currentPage === 1) {
+      iziToast.error({ message: 'No images found. Try another query.', position: 'topRight' });
+      return;
+    }
 
-  createGallery(hits);
+    createGallery(hits);
 
-  if (currentPage * PER_PAGE >= totalHits) {
-    hideLoadMoreButton();
-    if (totalHits) iziToast.info({ message: "You've reached the end of results.", position: 'bottomCenter' });
-  } else {
-    showLoadMoreButton();
+    const totalLoaded = (currentPage - 1) * PER_PAGE + hits.length;
+
+    if (totalLoaded >= totalHits) {
+      hideLoadMoreButton();
+      if (totalHits) {
+        iziToast.info({ message: "We've reached the end of results.", position: 'bottomCenter' });
+      }
+    } else {
+      showLoadMoreButton();
+    }
+  } catch (error) {
+    throw error;
   }
 }
